@@ -1,0 +1,96 @@
+let fireflies = [];
+let stars =[]
+let numStars = 600
+let numFireflies = 130;
+
+function setup() {
+  createCanvas(800, 500);
+  noStroke();
+  frameRate(20); //slow down firefly movement
+  //Create an array of stars
+  for (let s = 0; s < numStars; s++){
+    stars.push(
+    {xPos: random(width),
+    yPos: random(height)
+    })
+  }
+
+  // Create an array of firefly objects
+  for (let i = 0; i < numFireflies; i++) {
+    fireflies.push({
+      //location
+      x: random(width),
+      y: random(height),
+      
+      //vary the size to give the illusion of depth
+      size: random(3, 8),
+      
+      //vary the speed of firefly motion
+      speed: random(0.3, 1.2),
+
+      // Noise offsets control smooth wandering motion
+      nx: random(1000),
+      ny: random(1000),
+
+      // Random glow timing so they don't all blink together
+      blinkOffset: random(1000)
+    });
+  }
+}
+
+function draw() {
+  // Dark night background with slight transparency for soft trails
+  background(20, 10, 20, 50);
+//Draw background stars
+  stroke('white')
+  
+  for (let s = 0; s < stars.length; s++){
+    let star = stars[s]
+    point(star.xPos, star.yPos)
+    
+  }
+  
+  //Draw fireflies
+  for (let i = 0; i < fireflies.length; i++) {
+    noStroke()
+    let f = fireflies[i];
+
+  // use noise to make the fireflies move
+  // using noise times the speed has all the fireflies moving     // in one direction only so use the map function to provide     // bi directional motion
+    
+    let dx = map(noise(f.nx), 0, 1, -1, 1) * f.speed;
+    let dy = map(noise(f.ny), 0, 1, -1, 1) * f.speed;
+    
+    f.x += dx;
+    f.y += dy;
+
+    // Wrap around screen edges
+    if (f.x < -10) f.x = width + 10;
+    if (f.x > width + 10) f.x = -10;
+    if (f.y < -10) f.y = height + 10;
+    if (f.y > height + 10) f.y = -10;
+
+    // Brightness flicker:
+    // combine sine wave (blink) + noise (organic variation)
+  
+    let blink = map(sin(frameCount + f.blinkOffset), -1, 1, 80, 255);
+    
+    let shimmer = noise(f.nx * 2, f.ny * 2)
+    let glow = constrain(blink * shimmer, 50, 255);
+
+    // Outer glow
+    fill(255, 230, 100, glow * 0.25);//most transparent
+    circle(f.x, f.y, f.size * 4);
+
+    // Mid glow
+    fill(255, 240, 140, glow * 0.50);
+    circle(f.x, f.y, f.size * 2);
+
+    // Bright center
+    fill(255, 255, 180, glow);
+    circle(f.x, f.y, f.size);
+    
+
+  }
+
+}
